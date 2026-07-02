@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Check, CreditCard, Truck, MapPin } from 'lucide-react';
+import { Check, CreditCard, Truck, MapPin, Send, ArrowRight } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
 
 export default function CheckoutPage() {
@@ -30,18 +30,6 @@ export default function CheckoutPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // In real app, this would call ZarinPal API
-    // For now, we'll simulate the payment
-    alert('در حال انتقال به درگاه پرداخت زرین‌پال...\n(این نسخه دمو است)');
-    
-    // Simulate successful payment
-    clearCart();
-    setStep(3);
-  };
-
   if (items.length === 0 && step !== 3) {
     return (
       <div className="container mx-auto px-4 py-16 text-center animate-fade-in">
@@ -65,30 +53,20 @@ export default function CheckoutPage() {
 
       {/* Progress steps */}
       <div className="flex items-center justify-center mb-12">
-        {[
-          { num: 1, icon: MapPin, label: 'اطلاعات ارسال' },
-          { num: 2, icon: CreditCard, label: 'پرداخت' },
-          { num: 3, icon: Check, label: 'تکمیل' },
-        ].map((s, index) => (
-          <div key={s.num} className="flex items-center">
+        {[1, 2, 3].map((s, index) => (
+          <div key={s} className="flex items-center">
             <div className="flex flex-col items-center">
               <div
-                className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
-                  step >= s.num
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-200 text-gray-500'
-                }`}
+                className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${s <= step ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-500'}`}
               >
-                <s.icon className="w-6 h-6" />
+                {s === 1 ? <MapPin className="w-6 h-6" /> : s === 2 ? <Send className="w-6 h-6" /> : <Check className="w-6 h-6" />}
               </div>
-              <span className="text-sm mt-2 text-gray-600">{s.label}</span>
+              <span className="text-sm mt-2 text-gray-600">
+                {s === 1 ? 'اطلاعات ارسال' : s === 2 ? 'ثبت سفارش' : 'تکمیل'}
+              </span>
             </div>
             {index < 2 && (
-              <div
-                className={`w-24 h-1 mx-2 ${
-                  step > s.num ? 'bg-primary-600' : 'bg-gray-200'
-                }`}
-              />
+              <div className={`w-24 h-1 mx-2 ${step > s ? 'bg-primary-600' : 'bg-gray-200'}`} />
             )}
           </div>
         ))}
@@ -104,10 +82,7 @@ export default function CheckoutPage() {
             سفارش شما با موفقیت ثبت شد! 🎉
           </h2>
           <p className="text-gray-600 mb-8">
-            کد پیگیری سفارش شما: <span className="font-mono font-bold">DS-123456</span>
-          </p>
-          <p className="text-gray-600 mb-8">
-            پیامک تأیید به شماره {formData.phone} ارسال خواهد شد
+            پیامک تأیید به شماره {formData.phone} ارسال خواهد شد.
           </p>
           <Link
             href="/"
@@ -211,7 +186,7 @@ export default function CheckoutPage() {
                   type="submit"
                   className="w-full bg-primary-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-primary-700 transition-colors"
                 >
-                  ادامه به پرداخت
+                  ادامه به ثبت سفارش
                 </button>
               </div>
             </form>
@@ -253,29 +228,68 @@ export default function CheckoutPage() {
           </div>
         </div>
       ) : (
-        /* Step 2: Payment */
-        <div className="max-w-md mx-auto">
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 text-center">
-            <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CreditCard className="w-8 h-8 text-primary-600" />
-            </div>
-            <h2 className="text-xl font-bold text-gray-800 mb-4">پرداخت امن</h2>
-            <p className="text-gray-600 mb-6">
-              مبلغ <span className="font-bold text-primary-600">{formattedGrandTotal} تومان</span> از طریق درگاه زرین‌پال
-            </p>
-            <button
-              onClick={handleSubmit}
-              className="w-full bg-primary-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-primary-700 transition-colors mb-4"
-            >
-              پرداخت و تکمیل سفارش
-            </button>
-            <button
-              onClick={() => setStep(1)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              بازگشت به مرحله قبل
-            </button>
+        /* Step 2: Telegram Payment */
+        <div className="max-w-2xl mx-auto text-center py-12 px-6 bg-white rounded-2xl shadow-lg">
+          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Send className="w-10 h-10 text-blue-600" />
           </div>
+          <h2 className="text-3xl font-bold text-gray-800 mb-4">
+            ثبت سفارش از طریق تلگرام
+          </h2>
+          <p className="text-gray-600 mb-6 leading-relaxed">
+            برای تکمیل سفارش، لطفاً به پیوی تلگرام ما (@Mmj128) پیام دهید و اطلاعات زیر را ارسال کنید:
+          </p>
+
+          <div className="bg-gray-50 rounded-xl p-4 mb-6 text-right">
+            <h3 className="font-bold text-gray-800 mb-3">اطلاعات مورد نیاز:</h3>
+            <ul className="space-y-2 text-gray-600">
+              <li>• نام و نام خانوادگی</li>
+              <li>• شماره تماس (موبایل)</li>
+              <li>• آدرس دقیق پستی (شهر، خیابان، کوچه، پلاک)</li>
+              <li>• کد پستی (اختیاری)</li>
+              <li>• توضیحات اضافی (مثلاً زمان تحویل مورد نظر)</li>
+            </ul>
+          </div>
+
+          <div className="bg-blue-50 rounded-xl p-4 mb-6">
+            <h3 className="font-bold text-blue-800 mb-2">خلاصه سفارش شما:</h3>
+            <div className="space-y-2 text-sm text-right">
+              {items.map((item) => (
+                <div key={item.product.id} className="flex justify-between">
+                  <span className="text-gray-600">
+                    {item.product.name} × {item.quantity}
+                  </span>
+                  <span className="font-medium">
+                    {new Intl.NumberFormat('fa-IR').format(item.product.price * item.quantity)} تومان
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="border-t border-gray-200 mt-3 pt-3 flex justify-between font-bold text-lg">
+              <span>مبلغ قابل پرداخت:</span>
+              <span className="text-blue-600">{formattedGrandTotal} تومان</span>
+            </div>
+          </div>
+
+          <p className="text-gray-600 mb-6">
+            پس از ارسال اطلاعات، همکاران ما در تلگرام (@Mmj128) با شما تماس خواهند گرفت تا سفارش را نهایی کنند.
+          </p>
+
+          <a
+            href="https://t.me/Mmj128"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition-colors mb-4"
+          >
+            ارسال اطلاعات به تلگرام
+          </a>
+
+          <button
+            onClick={() => setStep(1)}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            بازگشت به مرحله قبل
+          </button>
         </div>
       )}
     </div>
